@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  producer:
+    build: ./producer
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - rabbitmq
+    networks:
+      - pubsubnetwork
+
+  rabbitmq:
+    image: rabbitmq:3.9-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - tapway_rabbitmq_lib:/var/lib/rabbitmq
+    networks:
+      - pubsubnetwork
+
+  consumer:
+    build: ./consumer
+    restart: always
+    depends_on:
+      - rabbitmq
+      - producer
+    volumes:
+      - ./consumer/output:/app/output
+    networks:
+      - pubsubnetwork
+
+networks:
+  pubsubnetwork:
+    driver: bridge
+
+volumes:
+  tapway_rabbitmq_lib:
+    name: tapway-rabbitmq-lib
